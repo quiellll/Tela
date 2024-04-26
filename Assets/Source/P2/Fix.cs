@@ -1,20 +1,43 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class Fix : MonoBehaviour
 {
-    // Possibilities of the Fixer
-    void Start()
+    [FormerlySerializedAs("_cloth")] [SerializeField] MassSpringCloth cloth;
+    private Bounds _fixerBounds;
+
+    private readonly List<Node> _fixedNodes = new List<Node>();
+    private Vector3 _lastPosition;
+    
+    private void Start()
     {
-        // Test if pos is inside
-        Vector3 pos = new Vector3(0.0f, 0.0f, 0.0f);
-        Bounds bounds = GetComponent<Collider>().bounds;
-        bool isInside = bounds.Contains(pos);
+        _fixerBounds = GetComponent<Collider>().bounds;
+        
+        foreach (var node in cloth.nodes)
+        {
+            if (!_fixerBounds.Contains(node.pos)) continue;
+            
+            _fixedNodes.Add(node);
+            node.isFixed = true;
+        }
 
-        // Transform points with fixer
-        Vector3 localPos = transform.InverseTransformPoint(pos);
-        Vector3 globalPos = transform.TransformPoint(localPos);
+        _lastPosition = transform.position;
+    }
 
+    private void Update()
+    {
+        if (!transform.hasChanged) return;
+
+
+        foreach (var fixedNode in _fixedNodes)
+        {
+            fixedNode.pos += (transform.position - _lastPosition);
+        }
+
+        _lastPosition = transform.position;
+        transform.hasChanged = false;
     }
 }
