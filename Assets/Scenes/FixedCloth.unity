@@ -550,6 +550,6 @@ MonoBehaviour:
   _paused: 0
   _timeStep: 0.01
   _mass: 10
-  _traction: 100
+  _traction: 3000
   _flexion: 0.1
   _gravity: {x: 0, y: -9.81, z: 0}
