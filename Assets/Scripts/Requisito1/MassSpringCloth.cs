@@ -13,28 +13,34 @@ public class MassSpringCloth : MonoBehaviour
     {
         _paused = false;
         _timeStep = 0.01f;
-        _mass = 10;
-        _stiffness = 1000;
+        _mass = 10f;
+        _traction = 3000f;
+        _flexion = 0.1f;
         _gravity = new Vector3(0.0f, -9.81f, 0.0f);
     }
 
     #region InEditorVariables
-    public List<Node> NodeList { get; private set; }                                        // Lista de nodos de la tela.
-    public List<Spring> SpringList { get; private set; }                                    // Lista de muelles de la tela.
+  
 
     [SerializeField] private bool _paused;                                                  // Variable que controla si la simulación está pausada.
 
     [SerializeField] private float _timeStep;                                               // Paso de tiempo de la simulación.
     [SerializeField] private float _mass;
-    [SerializeField] private float _stiffness;
+    [SerializeField] private float _traction;                                               // Constante de rigidez de los muelles.
+    [SerializeField] private float _flexion;                                                // Constante de flexión de los muelles.
     [SerializeField] private Vector3 _gravity;                                              // Gravedad de la simulación.
 
     #endregion
 
     #region OtherVariables
 
-    [SerializeField] private ChangeTrackingWrapper<float> _massTracker;                     // Masa de los nodos.
-    [SerializeField] private ChangeTrackingWrapper<float> _stiffnessTracker;                // Constante de rigidez de los muelles.
+    private ChangeTrackingWrapper<float> _massTracker;                                      // Tracker del valor de la masa.
+    private ChangeTrackingWrapper<float> _stiffnessTracker;                                 // Tracker del valor de la rigidez.
+    private ChangeTrackingWrapper<float> _flexionTracker;                                   // Tracker del valor de la flexión.
+
+    public List<Node> NodeList { get; private set; }                                        // Lista de nodos de la tela.
+    private List<Spring> SpringList { get;  set; }                                          // Lista de muelles de la tela.
+    private List<Spring> FlexionSpringList { get; set; }                                    // Lista de muelles de flexión de la tela.
 
     private SpringManager _springManager;                                                   // Manager de muelles.
 
@@ -51,7 +57,8 @@ public class MassSpringCloth : MonoBehaviour
         InitializeFromMesh();                                                               // Inicializa los nodos y muelles a partir de la malla del objeto.
 
         _massTracker = new(_mass);                                                          // Inicializa el tracker de la masa.
-        _stiffnessTracker = new(_stiffness);                                                // Inicializa el tracker de la rigidez.
+        _stiffnessTracker = new(_traction);                                                 // Inicializa el tracker de la rigidez.
+        _flexionTracker = new(_flexion);                                                    // Inicializa el tracker de la flexión.
     }
 
     public void Update()
@@ -60,7 +67,8 @@ public class MassSpringCloth : MonoBehaviour
             _paused = !_paused;
 
         _massTracker.Value = _mass;                                                         // Actualiza el tracker de la masa.
-        _stiffnessTracker.Value = _stiffness;                                               // Actualiza el tracker de la rigidez.
+        _stiffnessTracker.Value = _traction;                                                // Actualiza el tracker de la rigidez.
+        _flexionTracker.Value = _flexion;                                                   // Actualiza el tracker de la flexión.
 
         CheckPhysicsParametersUpdates();                                                    // Comprueba si se han actualizado los parámetros de la simulación.
     }
@@ -82,6 +90,7 @@ public class MassSpringCloth : MonoBehaviour
         _springManager = new();                                                             // Inicialización del manager de muelles.
         NodeList = new List<Node>();                                                        // Inicialización de la lista de nodos.
         SpringList = new List<Spring>();                                                    // Inicialización de la lista de muelles.
+        FlexionSpringList = new List<Spring>();                                             // Inicialización de la lista de muelles de flexión.
 
         for (int i = 0; i < _vertices.Length; i++)                                          // Inicialización de nodos por cada vértice de la malla.
         {
@@ -92,15 +101,29 @@ public class MassSpringCloth : MonoBehaviour
 
         for (int i = 0; i < triangles.Length; i += 3)                                       // Inicialización de muelles por cada triángulo de la malla.
         {
-            InitializeMeshSpring(NodeList[triangles[i]], NodeList[triangles[i + 1]]);       // Muelle entre vértices 0 y 1.
-            InitializeMeshSpring(NodeList[triangles[i + 1]], NodeList[triangles[i + 2]]);   // Muelle entre vértices 1 y 2.
-            InitializeMeshSpring(NodeList[triangles[i + 2]], NodeList[triangles[i]]);       // Muelle entre vértices 2 y 0.
+            Node node0 = NodeList[triangles[i]];                                            // Obtiene el nodo 0.
+            Node node1 = NodeList[triangles[i + 1]];                                        // Obtiene el nodo 1.
+            Node node2 = NodeList[triangles[i + 2]];                                        // Obtiene el nodo 2.
+
+            InitializeMeshSpring(node0, node1, node2);                                      // Muelle entre vértices 0 y 1.
+            InitializeMeshSpring(node1, node2, node0);                                      // Muelle entre vértices 1 y 2.
+            InitializeMeshSpring(node2, node0, node1);                                      // Muelle entre vértices 2 y 0.
         }
     }
 
-    private void InitializeMeshSpring(Node nodeA, Node nodeB)                               // Función que inicializa un muelle entre dos nodos.
+    private void InitializeMeshSpring(Node nodeA, Node nodeB, Node nodeC)                   // Función que inicializa un muelle entre dos nodos.
     {
-        _springManager.CreateSpring(nodeA, nodeB, _stiffness, SpringList, NodeList);
+        if (_springManager.CreateSpring(nodeA, nodeB, nodeC, NodeList))                     // Si el muelle no existe, se crea.
+        {
+            Spring newSpring = new(nodeA, nodeB, _traction);
+            SpringList.Add(newSpring);
+        }
+        else if (!_springManager.CreateSpring(nodeA, nodeB, nodeC, NodeList))               // Si el muelle ya existe, se crea un muelle entre el nodo C y el nodo opuesto.
+        {
+            Node targetNode = _springManager.GetOppositeNode(nodeA, nodeB, NodeList);       // Obtiene el nodo opuesto.
+            Spring newSpring = new(nodeC, targetNode, _flexion);                            // Crea el muelle de flexión.
+            FlexionSpringList.Add(newSpring);
+        }
     }
 
     private void StepSymplectic()                                                           // Función que realiza un paso de la simulación mediante el método de Euler.
@@ -148,10 +171,20 @@ public class MassSpringCloth : MonoBehaviour
         {
             foreach (Spring spring in SpringList)                                           // Actualiza la rigidez de los muelles.
             {
-                spring.ModifySpringStiffness(_stiffness);
+                spring.ModifySpringStiffness(_traction);
             }
 
             _stiffnessTracker.ResetChangedFlag();                                           // Restablece el flag de cambio de rigidez.
+        }
+
+        if (_flexionTracker.HasChanged)                                                     // Comprueba si la flexión ha cambiado.
+        {
+            foreach (Spring spring in FlexionSpringList)                                    // Actualiza la flexión de los muelles.
+            {
+                spring.ModifySpringStiffness(_flexion);
+            }
+
+            _flexionTracker.ResetChangedFlag();                                             // Restablece el flag de cambio de flexión.
         }
     }
 }
