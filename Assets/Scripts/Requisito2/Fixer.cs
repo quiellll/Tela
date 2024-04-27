@@ -17,7 +17,8 @@ public class Fixer : MonoBehaviour
     
     private void Start()
     {
-        _cloth = GetComponentInChildren<MassSpringCloth>();                                 // Se obtienen los componentes hijos de tipo MassSpringCloth.
+        if (GetComponentInChildren<MassSpringCloth>() != null)                              // Si no se encuentra un componente MassSpringCloth3 en los hijos, se omite.
+            _cloth = GetComponentInChildren<MassSpringCloth>();                             // Se obtienen los componentes hijos de tipo MassSpringCloth.
         
         _fixerBounds = GetComponent<Collider>().bounds;                                     // Se obtienen los límites del Collider del objeto que contiene este script.
         

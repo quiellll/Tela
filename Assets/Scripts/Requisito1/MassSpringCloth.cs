@@ -11,8 +11,10 @@ public class MassSpringCloth : MonoBehaviour
 
     public MassSpringCloth()                                                                // Clase que almacena las variables para controlar la simulación de la tela.
     {
-        _paused = true;
+        _paused = false;
         _timeStep = 0.01f;
+        _mass = 10;
+        _stiffness = 1000;
         _gravity = new Vector3(0.0f, -9.81f, 0.0f);
     }
 
@@ -34,8 +36,10 @@ public class MassSpringCloth : MonoBehaviour
     [SerializeField] private ChangeTrackingWrapper<float> _massTracker;                     // Masa de los nodos.
     [SerializeField] private ChangeTrackingWrapper<float> _stiffnessTracker;                // Constante de rigidez de los muelles.
 
+    private SpringManager _springManager;                                                   // Manager de muelles.
+
     private Mesh _mesh;                                                                     // Malla del objeto.
-       
+
     private Vector3[] _vertices;                                                            // Lista de vértices de la malla.
 
     #endregion
@@ -75,6 +79,7 @@ public class MassSpringCloth : MonoBehaviour
         _vertices = _mesh.vertices;                                                         // Inicialización de la lista de vértices.
         int[] triangles = _mesh.triangles;                                                  // Inicialización de la lista de triángulos de la malla.
 
+        _springManager = new();                                                             // Inicialización del manager de muelles.
         NodeList = new List<Node>();                                                        // Inicialización de la lista de nodos.
         SpringList = new List<Spring>();                                                    // Inicialización de la lista de muelles.
 
@@ -87,16 +92,15 @@ public class MassSpringCloth : MonoBehaviour
 
         for (int i = 0; i < triangles.Length; i += 3)                                       // Inicialización de muelles por cada triángulo de la malla.
         {
-            InitializeSpring(NodeList[triangles[i]], NodeList[triangles[i + 1]]);           // Muelle entre vértices 0 y 1.
-            InitializeSpring(NodeList[triangles[i + 1]], NodeList[triangles[i + 2]]);       // Muelle entre vértices 1 y 2.
-            InitializeSpring(NodeList[triangles[i + 2]], NodeList[triangles[i]]);           // Muelle entre vértices 2 y 0.
+            InitializeMeshSpring(NodeList[triangles[i]], NodeList[triangles[i + 1]]);       // Muelle entre vértices 0 y 1.
+            InitializeMeshSpring(NodeList[triangles[i + 1]], NodeList[triangles[i + 2]]);   // Muelle entre vértices 1 y 2.
+            InitializeMeshSpring(NodeList[triangles[i + 2]], NodeList[triangles[i]]);       // Muelle entre vértices 2 y 0.
         }
     }
 
-    private void InitializeSpring(Node nodeA, Node nodeB)                                   // Función que inicializa un muelle entre dos nodos.
+    private void InitializeMeshSpring(Node nodeA, Node nodeB)                               // Función que inicializa un muelle entre dos nodos.
     {
-        Spring newSpring = new(nodeA, nodeB, _stiffness);
-        SpringList.Add(newSpring);
+        _springManager.CreateSpring(nodeA, nodeB, _stiffness, SpringList, NodeList);
     }
 
     private void StepSymplectic()                                                           // Función que realiza un paso de la simulación mediante el método de Euler.
@@ -149,5 +153,5 @@ public class MassSpringCloth : MonoBehaviour
 
             _stiffnessTracker.ResetChangedFlag();                                           // Restablece el flag de cambio de rigidez.
         }
-    }   
+    }
 }
