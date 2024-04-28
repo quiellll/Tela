@@ -323,7 +323,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6133031256041755696, guid: 448e43978bedcbe429436d7949e5982d, type: 3}
       propertyPath: m_Name
-      value: BaseClothSimulation
+      value: Cloth
+      objectReference: {fileID: 0}
+    - target: {fileID: 6852893380317083075, guid: 448e43978bedcbe429436d7949e5982d, type: 3}
+      propertyPath: m_Name
+      value: Fixer
       objectReference: {fileID: 0}
     - target: {fileID: 7065156685373820560, guid: 448e43978bedcbe429436d7949e5982d, type: 3}
       propertyPath: m_RootOrder
