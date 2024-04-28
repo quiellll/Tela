@@ -25,15 +25,8 @@ public class Spring
         _length0 = Vector3.Distance(node1.Position, node2.Position);
     }
 
-    public void ModifySpringStiffness(float newStiffness)                                   // Modifica la constante de rigidez del muelle.
-    {
-        _stiffness = newStiffness;
-    }
-
-    public void ModifySpringDamping(float newDamping)                                       // Modifica la constante de amortiguación del muelle.
-    {
-        _damping = newDamping;
-    }
+    public void ModifySpringStiffness(float newStiffness) { _stiffness = newStiffness; }    // Modifica la constante de rigidez del muelle.
+    public void ModifySpringDamping(float newDamping) { _damping = newDamping; }            // Modifica la constante de amortiguación del muelle.
 
     public void UpdateSpringLength()                                                        // Actualiza la longitud actual del muelle.
     {

@@ -156,6 +156,18 @@ PrefabInstance:
       value: 2.81
       objectReference: {fileID: 0}
     - target: {fileID: 5662638799678422861, guid: 448e43978bedcbe429436d7949e5982d, type: 3}
+      propertyPath: _windForce.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5662638799678422861, guid: 448e43978bedcbe429436d7949e5982d, type: 3}
+      propertyPath: _windForce.y
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5662638799678422861, guid: 448e43978bedcbe429436d7949e5982d, type: 3}
+      propertyPath: _windForce.z
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 5662638799678422861, guid: 448e43978bedcbe429436d7949e5982d, type: 3}
       propertyPath: _springDamping
       value: 27.3
       objectReference: {fileID: 0}
