@@ -333,6 +333,10 @@ PrefabInstance:
       value: 400
       objectReference: {fileID: 0}
     - target: {fileID: 3501042704824683513, guid: 19583345f0d410744abebfc68a1fd89b, type: 3}
+      propertyPath: _timeStep
+      value: 0.005
+      objectReference: {fileID: 0}
+    - target: {fileID: 3501042704824683513, guid: 19583345f0d410744abebfc68a1fd89b, type: 3}
       propertyPath: _traction
       value: 200
       objectReference: {fileID: 0}

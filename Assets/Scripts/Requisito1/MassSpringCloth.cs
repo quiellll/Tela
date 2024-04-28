@@ -13,7 +13,8 @@ public class MassSpringCloth : MonoBehaviour
     public MassSpringCloth()                                                                // Clase que almacena las variables para controlar la simulación de la tela.
     {
         _paused = false;
-        _timeStep = 0.0085f;
+        _substeps = 5;
+        _timeStep = 0.005f;
         _mass = 1f;
         _traction = 100f;
         _flexion = 180f;
@@ -28,9 +29,9 @@ public class MassSpringCloth : MonoBehaviour
     #region InEditorVariables
   
 
-    [SerializeField] private bool _paused;                                                  // Variable que controla si la simulación está pausada.
-
-    [SerializeField] [Range (0.001f, 0.01f)]    private float _timeStep;                    // Paso de tiempo de la simulación.
+    [SerializeField]                            private bool _paused;                       // Variable que controla si la simulación está pausada.
+    [SerializeField] [Range(1, 10)]             private int _substeps;                      // Número de subpasos de la simulación.
+    [SerializeField] [Range (0.001f, 0.02f)]    private float _timeStep;                    // Paso de tiempo de la simulación.
     [SerializeField] [Range (0.01f, 10f)]       private float _mass;                        // Masa de los nodos.
     [SerializeField] [Range (50f, 200f)]        private float _traction;                    // Constante de rigidez de los muelles.
     [SerializeField] [Range (100f, 400f)]       private float _flexion;                     // Constante de flexión de los muelles.
@@ -93,7 +94,8 @@ public class MassSpringCloth : MonoBehaviour
     {
         if (!_paused)
         {
-            StepSymplectic();                                                               // NOTA: Se elimina la selección de método de integración puesto que se ha prescindido del método explícito en clase.
+            for (int i = 0; i < _substeps; i++)                                             // Realiza los subpasos de la simulación.
+                StepSymplectic();                                                           // NOTA: Se elimina la selección de método de integración puesto que se ha prescindido del método explícito en clase.
 
             if (_windEnabled) _wind.UpdateWind(Time.deltaTime);                             // Actualiza la fuerza del viento. 
         }
