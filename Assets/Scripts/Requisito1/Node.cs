@@ -35,20 +35,12 @@ public class Node{
         _cloth = cloth;
     }
 
-    public void SetNodePosition(Vector3 newPosition)                                        // Establece la posición del nodo.
-    {
-        Position = newPosition;
-    }
-
-    public void FixNode()                                                                   // Fija el nodo.
-    {
-        _isFixed = true;
-    }
-
-    public void ModifyNodeMass(float newMass) { _mass = newMass; }                                              // Modifica la masa del nodo.
-    public void ModifyNodeDamping(float newDamping) { _damping = newDamping; }                                      // Modifica la amortiguación del nodo.
-    public void ModifyNodeGravity(Vector3 newGravity) { _gravity = newGravity; }                                       // Modifica la gravedad del nodo.
-    public void ModifyNodeWind(Vector3 newWind) { _windForce = newWind; }                                            // Modifica la fuerza del viento.
+    public void SetNodePosition(Vector3 newPosition) { Position = newPosition; }            // Establece la posición del nodo.
+    public void FixNode() { _isFixed = true; }                                              // Fija el nodo.
+    public void ModifyNodeMass(float newMass) { _mass = newMass; }                          // Modifica la masa del nodo.
+    public void ModifyNodeDamping(float newDamping) { _damping = newDamping; }              // Modifica la amortiguación del nodo.
+    public void ModifyNodeGravity(Vector3 newGravity) { _gravity = newGravity; }            // Modifica la gravedad del nodo.
+    public void ModifyNodeWind(Vector3 newWind) { _windForce = newWind; }                   // Modifica la fuerza del viento.
 
     public void ComputeForces()
     {
@@ -58,10 +50,7 @@ public class Node{
         _force += _windForce;
     }
 
-    public void AddSpringForce(Vector3 force)                                               // Añade una fuerza de muelle al nodo.
-    {
-        _force += force;
-    }
+    public void AddSpringForce(Vector3 force) { _force += force; }                          // Añade una fuerza de muelle al nodo.
 
     public void NodeSymplecticEulerIntegration(float timeStep)                              // Método de integración de Euler.
     {

@@ -1,12 +1,17 @@
 using System.Collections.Generic;
 
+/// <summary>
+/// Clase que gestiona los muelles de la tela.
+/// Evita la creación de muelles duplicados y almacena los nodos 
+/// opuestos para facilitar la creación de muelles de torsión.
+/// </summary>
 public class SpringManager
 {
     public readonly HashSet<(int, int)> existingSprings = new();                            // Conjunto de muelles existentes.
 
     private Dictionary<(int, int), Node> _oppositeNodes = new();                            // Diccionario de nodos opuestos.
 
-    public bool CreateSpring(Node nodeA, Node nodeB, Node nodeC, List<Node> nodeList)        // Crea un muelle entre dos nodos.
+    public bool CreateSpring(Node nodeA, Node nodeB, Node nodeC, List<Node> nodeList)       // Crea un muelle entre dos nodos.
     {
         int idA = nodeList.IndexOf(nodeA);                                                  // Obtiene el índice del nodo A.
         int idB = nodeList.IndexOf(nodeB);                                                  // Obtiene el índice del nodo B.

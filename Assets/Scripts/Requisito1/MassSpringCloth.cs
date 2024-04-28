@@ -22,7 +22,7 @@ public class MassSpringCloth : MonoBehaviour
         _gravity = new Vector3(0.0f, -9.81f, 0.0f);
         _windEnabled = false;
         _windVariation = 2f;
-        _windForce = new Vector3(0, 0, 0);
+        _windForce = new Vector3(0f, 0f, 0f);
     }
 
     #region InEditorVariables
@@ -257,7 +257,7 @@ public class MassSpringCloth : MonoBehaviour
 
         if (_windVariationTracker.HasChanged)                                               // Comprueba si la variación de la fuerza del viento ha cambiado.
         {
-            _wind.UpdateVariation(_windVariation);                                          // Actualiza la variación de la fuerza del viento.
+            _wind.ModifyVariation(_windVariation);                                          // Actualiza la variación de la fuerza del viento.
 
             _windVariationTracker.ResetChangedFlag();                                       // Restablece el flag de cambio de la variación de la fuerza del viento.
         }
