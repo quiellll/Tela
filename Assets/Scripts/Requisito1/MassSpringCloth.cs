@@ -12,10 +12,12 @@ public class MassSpringCloth : MonoBehaviour
     public MassSpringCloth()                                                                // Clase que almacena las variables para controlar la simulación de la tela.
     {
         _paused = false;
-        _timeStep = 0.01f;
-        _mass = 10f;
-        _traction = 3000f;
-        _flexion = 0.1f;
+        _timeStep = 0.0085f;
+        _mass = 1f;
+        _traction = 100f;
+        _flexion = 180f;
+        _nodeDamping = 1.35f;
+        _springDamping = 15f;
         _gravity = new Vector3(0.0f, -9.81f, 0.0f);
     }
 
@@ -24,10 +26,12 @@ public class MassSpringCloth : MonoBehaviour
 
     [SerializeField] private bool _paused;                                                  // Variable que controla si la simulación está pausada.
 
-    [SerializeField] private float _timeStep;                                               // Paso de tiempo de la simulación.
-    [SerializeField] private float _mass;
-    [SerializeField] private float _traction;                                               // Constante de rigidez de los muelles.
-    [SerializeField] private float _flexion;                                                // Constante de flexión de los muelles.
+    [SerializeField] [Range (0.001f, 0.01f)]    private float _timeStep;                    // Paso de tiempo de la simulación.
+    [SerializeField] [Range (0.01f, 10f)]       private float _mass;                        // Masa de los nodos.
+    [SerializeField] [Range (50f, 200f)]        private float _traction;                    // Constante de rigidez de los muelles.
+    [SerializeField] [Range (100f, 400f)]       float _flexion;                             // Constante de flexión de los muelles.
+    [SerializeField] [Range (0.1f, 5f)]         private float _nodeDamping;                 // Constante de amortiguación de los nodos.
+    [SerializeField] [Range (5f, 40f)]          private float _springDamping;               // Constante de amortiguación de los muelles.
     [SerializeField] private Vector3 _gravity;                                              // Gravedad de la simulación.
 
     #endregion
@@ -37,6 +41,8 @@ public class MassSpringCloth : MonoBehaviour
     private ChangeTrackingWrapper<float> _massTracker;                                      // Tracker del valor de la masa.
     private ChangeTrackingWrapper<float> _stiffnessTracker;                                 // Tracker del valor de la rigidez.
     private ChangeTrackingWrapper<float> _flexionTracker;                                   // Tracker del valor de la flexión.
+    private ChangeTrackingWrapper<float> _nodeDampingTracker;                               // Tracker del valor de la amortiguación de los nodos.
+    private ChangeTrackingWrapper<float> _springDampingTracker;                             // Tracker del valor de la amortiguación de los muelles.
 
     public List<Node> NodeList { get; private set; }                                        // Lista de nodos de la tela.
     private List<Spring> SpringList { get;  set; }                                          // Lista de muelles de la tela.
@@ -59,6 +65,8 @@ public class MassSpringCloth : MonoBehaviour
         _massTracker = new(_mass);                                                          // Inicializa el tracker de la masa.
         _stiffnessTracker = new(_traction);                                                 // Inicializa el tracker de la rigidez.
         _flexionTracker = new(_flexion);                                                    // Inicializa el tracker de la flexión.
+        _nodeDampingTracker = new(_nodeDamping);                                            // Inicializa el tracker de la amortiguación de los nodos.
+        _springDampingTracker = new(_springDamping);                                        // Inicializa el tracker de la amortiguación de los muelles.
     }
 
     public void Update()
@@ -69,6 +77,8 @@ public class MassSpringCloth : MonoBehaviour
         _massTracker.Value = _mass;                                                         // Actualiza el tracker de la masa.
         _stiffnessTracker.Value = _traction;                                                // Actualiza el tracker de la rigidez.
         _flexionTracker.Value = _flexion;                                                   // Actualiza el tracker de la flexión.
+        _nodeDampingTracker.Value = _nodeDamping;                                           // Actualiza el tracker de la amortiguación de los nodos.
+        _springDampingTracker.Value = _springDamping;                                       // Actualiza el tracker de la amortiguación de los muelles.
 
         CheckPhysicsParametersUpdates();                                                    // Comprueba si se han actualizado los parámetros de la simulación.
     }
@@ -94,7 +104,8 @@ public class MassSpringCloth : MonoBehaviour
 
         for (int i = 0; i < _vertices.Length; i++)                                          // Inicialización de nodos por cada vértice de la malla.
         {
-            Node newNode = new(transform.TransformPoint(_vertices[i]), _mass, _gravity);
+            Node newNode = new(transform.TransformPoint(_vertices[i]),
+                                                        _mass, _nodeDamping, _gravity);
             NodeList.Add(newNode);
         }
 
@@ -115,13 +126,13 @@ public class MassSpringCloth : MonoBehaviour
     {
         if (_springManager.CreateSpring(nodeA, nodeB, nodeC, NodeList))                     // Si el muelle no existe, se crea.
         {
-            Spring newSpring = new(nodeA, nodeB, _traction);
+            Spring newSpring = new(nodeA, nodeB, _traction, _springDamping);
             SpringList.Add(newSpring);
         }
         else if (!_springManager.CreateSpring(nodeA, nodeB, nodeC, NodeList))               // Si el muelle ya existe, se crea un muelle entre el nodo C y el nodo opuesto.
         {
             Node targetNode = _springManager.GetOppositeNode(nodeA, nodeB, NodeList);       // Obtiene el nodo opuesto.
-            Spring newSpring = new(nodeC, targetNode, _flexion);                            // Crea el muelle de flexión.
+            Spring newSpring = new(nodeC, targetNode, _flexion, _springDamping);            // Crea el muelle de flexión.
             FlexionSpringList.Add(newSpring);
         }
     }
@@ -185,6 +196,26 @@ public class MassSpringCloth : MonoBehaviour
             }
 
             _flexionTracker.ResetChangedFlag();                                             // Restablece el flag de cambio de flexión.
+        }
+
+        if (_nodeDampingTracker.HasChanged)                                                 // Comprueba si la amortiguación de los nodos ha cambiado.
+        {
+            foreach (Node node in NodeList)                                                 // Actualiza la amortiguación de los nodos.
+            {
+                node.ModifyNodeDamping(_nodeDamping);
+            }
+
+            _nodeDampingTracker.ResetChangedFlag();                                         // Restablece el flag de cambio de amortiguación de los nodos.
+        }
+
+        if (_springDampingTracker.HasChanged)                                               // Comprueba si la amortiguación de los muelles ha cambiado.
+        {
+            foreach (Spring spring in SpringList)                                           // Actualiza la amortiguación de los muelles.
+            {
+                spring.ModifySpringDamping(_springDamping);
+            }
+
+            _springDampingTracker.ResetChangedFlag();                                       // Restablece el flag de cambio de amortiguación de los muelles.
         }
     }
 }

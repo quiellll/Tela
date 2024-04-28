@@ -7,21 +7,23 @@ using UnityEngine;
 public class Node{
 
     public Vector3 Position { get; private set; }                                           // Posición del nodo.
+    public Vector3 Velocity { get;  set; }                                         // Velocidad del nodo.
 
-    private Vector3 _velocity;                                                              // Velocidad del nodo.
     private Vector3 _force;                                                                 // Fuerza aplicada al nodo.
     private Vector3 _gravity;                                                               // Gravedad del sistema.
 
+    private float _damping;                                                                 // Amortiguación del nodo.
     private float _mass;                                                                    // Masa del nodo.
 
     private bool _isFixed;                                                                  // Flag que indica si el nodo está fijado.
 
-    public Node(Vector3 position, float mass, Vector3 gravity)                              // Constructor de la clase Node.
+    public Node(Vector3 position, float mass, float damping, Vector3 gravity)               // Constructor de la clase Node.
     {
         Position = position;
-        _velocity = Vector3.zero;
+        Velocity = Vector3.zero;
         _force = Vector3.zero;
         _gravity = gravity;
+        _damping = damping;
         _mass = mass;
         _isFixed = false;
     }
@@ -41,6 +43,11 @@ public class Node{
         _mass = newMass;
     }
 
+    public void ModifyNodeDamping(float newDamping)                                         // Modifica la amortiguación del nodo.
+    {
+        _damping = newDamping;
+    }
+
     public void ComputeForces()
     {
         _force = Vector3.zero;                                                              // Se reinicia la fuerza.
@@ -56,7 +63,10 @@ public class Node{
     {
         if (_isFixed) return;
 
-        _velocity += timeStep * _force / _mass;
-        Position += timeStep * _velocity;
+        Vector3 dampingForce = -_damping * Velocity;                                       // Fuerza de amortiguación.
+        Vector3 totalForce = _force + dampingForce;                                         // Fuerza total.
+
+        Velocity += timeStep * totalForce / _mass;
+        Position += timeStep * Velocity;
     }
 }

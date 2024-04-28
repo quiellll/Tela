@@ -3,8 +3,8 @@ using UnityEngine;
 
 /// <summary>
 /// Fija los nodos de una tela que se encuentren dentro de un objeto con un collider. 
-/// Para vincular este script, se debe colocar el objeto que contiene el script MassSpringCloth 
-/// como hijo del objeto que contiene este script.
+/// Para vincular este script, se debe colocar el objeto que contiene este script como hijo
+/// del objeto que contenga el componente MassSpringCloth.
 /// </summary>
 public class Fixer : MonoBehaviour
 {    
@@ -17,8 +17,8 @@ public class Fixer : MonoBehaviour
     
     private void Start()
     {
-        if (GetComponentInChildren<MassSpringCloth>() != null)                              // Si no se encuentra un componente MassSpringCloth3 en los hijos, se omite.
-            _cloth = GetComponentInChildren<MassSpringCloth>();                             // Se obtienen los componentes hijos de tipo MassSpringCloth.
+        if (GetComponentInParent<MassSpringCloth>() != null)                                // Si no se encuentra un componente MassSpringCloth3 en el padre, se omite.
+            _cloth = GetComponentInParent<MassSpringCloth>();                               // Se obtienen el componente padre de tipo MassSpringCloth.
         
         _fixerBounds = GetComponent<Collider>().bounds;                                     // Se obtienen los límites del Collider del objeto que contiene este script.
         
